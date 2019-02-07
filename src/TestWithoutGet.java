@@ -1,33 +1,32 @@
-import org.omg.CORBA.SystemException;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-public class Main {
+public class TestWithoutGet {
     public static void main(String[] args) throws ExecutionException, InterruptedException {
 // 2. WRITE THE SECOND PROGRAM THAT USES COMPLETABLE FUTURE TO ACHIEVE THE SAME THING
 
         List<String> myList = Arrays.asList("one", "two", "three");
-        List<CompletableFuture<String>> futures = new ArrayList<>();
+        List<String> futures = new ArrayList<>();
         ExecutorService executorService = Executors.newFixedThreadPool(4);
 
         for (String temp : myList) {
-           // Printer2 task = new Printer2(temp);
             CompletableFuture<String> str = CompletableFuture.completedFuture(temp).handleAsync((rs, e) -> {
-                try {
-                    //return task.call();
-                return rs + " modified " + Thread.currentThread().getName();
-                } catch(Exception ex) { return  null; }},
+                        try {
+                            futures.add(rs + " modified " + Thread.currentThread().getName());
+                            return null;
+                        } catch(Exception ex) { return  null; }},
                     executorService);
-            futures.add(str);
         }
 
-        for (CompletableFuture future : futures ) {
-            Thread.sleep(4000);
-            System.out.println(future.get());
+        while(futures.size() < myList.size()) {
+            continue;
         }
+        System.out.println(futures);
         executorService.shutdown();
     }
 }
